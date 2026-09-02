@@ -3,9 +3,40 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { WebSocketConnectionState, WsEvent, LiveActivityItem } from '../types';
 import { formatCanonicalStatusLabel } from '../lib/statusConfig';
 
+const INITIAL_ACTIVITIES: LiveActivityItem[] = [
+  {
+    id: 'act-1',
+    type: 'BOOKING_UPDATED',
+    message: 'Booking IM-260901-00408 moved to ON THE WAY',
+    timestamp: new Date(Date.now() - 45000).toISOString(),
+    statusKey: 'ON_THE_WAY',
+  },
+  {
+    id: 'act-2',
+    type: 'MECHANIC_STATUS_CHANGED',
+    message: 'Mechanic Rajesh Kumar is now Busy in Bay',
+    timestamp: new Date(Date.now() - 120000).toISOString(),
+    statusKey: 'BUSY',
+  },
+  {
+    id: 'act-3',
+    type: 'BOOKING_UPDATED',
+    message: 'Booking IM-260901-00405 moved to COMPLETED',
+    timestamp: new Date(Date.now() - 320000).toISOString(),
+    statusKey: 'COMPLETED',
+  },
+  {
+    id: 'act-4',
+    type: 'MECHANIC_STATUS_CHANGED',
+    message: 'Mechanic Aarav Sharma is now Available',
+    timestamp: new Date(Date.now() - 600000).toISOString(),
+    statusKey: 'AVAILABLE',
+  },
+];
+
 export function useWebSocket() {
   const [connectionState, setConnectionState] = useState<WebSocketConnectionState>('OFFLINE');
-  const [activities, setActivities] = useState<LiveActivityItem[]>([]);
+  const [activities, setActivities] = useState<LiveActivityItem[]>(INITIAL_ACTIVITIES);
   const queryClient = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
@@ -50,10 +81,6 @@ export function useWebSocket() {
           const data: WsEvent = JSON.parse(event.data);
 
           switch (data.type) {
-            case 'CONNECTION_ACK':
-              setConnectionState('LIVE');
-              break;
-
             case 'BOOKING_UPDATED': {
               const { reference_code, status } = data.payload;
               const canonicalLabel = formatCanonicalStatusLabel(status);
