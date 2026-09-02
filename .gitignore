@@ -1,0 +1,46 @@
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+frontend/dist-ssr/
+*.local
+
+# Python / Backend
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables
+.env
+frontend/.env
+backend/.env
+!.env.example
+!backend/.env.example
+
+# Logs
+*.log
+logs/
+
+# IDE / Editor
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Temporary & Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

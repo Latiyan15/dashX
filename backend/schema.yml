@@ -1,0 +1,1717 @@
+openapi: 3.0.3
+info:
+  title: InstantMechanic Live Operations Dashboard API
+  version: 1.0.0
+  description: Production-ready REST API for vehicle service operations, analytics,
+    real-time dispatch, and customer management.
+paths:
+  /api/v1/analytics/bookings-over-time/:
+    get:
+      operationId: analytics_bookings_over_time_list
+      description: Returns daily booking volume breakdown (total, completed, cancelled,
+        in progress) for trend charts.
+      parameters:
+      - in: query
+        name: days
+        schema:
+          type: integer
+        description: Number of past days to aggregate (default 30)
+      - in: query
+        name: end_date
+        schema:
+          type: string
+        description: End date YYYY-MM-DD
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Start date YYYY-MM-DD
+      tags:
+      - Analytics
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookingsOverTimeItem'
+          description: ''
+  /api/v1/analytics/overview/:
+    get:
+      operationId: analytics_overview_retrieve
+      description: |-
+        Returns high-level operational KPIs and real-time dashboard snapshot.
+        Calculated via a single high-performance conditional SQL aggregation.
+      tags:
+      - Analytics
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsOverview'
+          description: ''
+  /api/v1/analytics/revenue-over-time/:
+    get:
+      operationId: analytics_revenue_over_time_list
+      description: Returns daily completed booking revenue and job volume for financial
+        charts.
+      parameters:
+      - in: query
+        name: days
+        schema:
+          type: integer
+        description: Number of past days to aggregate (default 30)
+      - in: query
+        name: end_date
+        schema:
+          type: string
+        description: End date YYYY-MM-DD
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Start date YYYY-MM-DD
+      tags:
+      - Analytics
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RevenueOverTimeItem'
+          description: ''
+  /api/v1/analytics/service-breakdown/:
+    get:
+      operationId: analytics_service_breakdown_retrieve
+      description: Returns volume and financial contributions categorized by service
+        category and top service items.
+      tags:
+      - Analytics
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceBreakdown'
+          description: ''
+  /api/v1/analytics/status-distribution/:
+    get:
+      operationId: analytics_status_distribution_list
+      description: Returns counts and calculated percentages of bookings grouped by
+        current status.
+      tags:
+      - Analytics
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatusDistributionItem'
+          description: ''
+  /api/v1/bookings/:
+    get:
+      operationId: bookings_list
+      description: |-
+        Endpoints for querying, filtering, and updating vehicle service bookings.
+        All listing operations use optimized server-side pagination, searching, sorting, and joins.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Bookings
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookingListList'
+          description: ''
+  /api/v1/bookings/{id}/:
+    get:
+      operationId: bookings_retrieve
+      description: |-
+        Endpoints for querying, filtering, and updating vehicle service bookings.
+        All listing operations use optimized server-side pagination, searching, sorting, and joins.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this booking.
+        required: true
+      tags:
+      - Bookings
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+          description: ''
+  /api/v1/bookings/{id}/assign-mechanic/:
+    patch:
+      operationId: bookings_assign_mechanic_partial_update
+      description: Assign a field mechanic to a booking and advance status to ASSIGNED.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this booking.
+        required: true
+      tags:
+      - Bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingAssignMechanic'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingAssignMechanic'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingAssignMechanic'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/bookings/{id}/status/:
+    patch:
+      operationId: bookings_status_partial_update
+      description: Transition a booking's status lifecycle with audit tracking and
+        mechanic sync.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this booking.
+        required: true
+      tags:
+      - Bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingStatusUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingStatusUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingStatusUpdate'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/customers/:
+    get:
+      operationId: customers_list
+      description: |-
+        List and retrieve customer profiles with real-time aggregated metrics (vehicles, bookings, total spend).
+        Uses subqueries to avoid Cartesian product duplication across multiple 1:N relations.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Customers
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCustomerListList'
+          description: ''
+  /api/v1/customers/{id}/:
+    get:
+      operationId: customers_retrieve
+      description: |-
+        List and retrieve customer profiles with real-time aggregated metrics (vehicles, bookings, total spend).
+        Uses subqueries to avoid Cartesian product duplication across multiple 1:N relations.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this customer.
+        required: true
+      tags:
+      - Customers
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerDetail'
+          description: ''
+  /api/v1/mechanics/:
+    get:
+      operationId: mechanics_list
+      description: Endpoints for listing, searching, filtering, and updating field
+        mechanics.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Mechanics
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMechanicListList'
+          description: ''
+  /api/v1/mechanics/{id}/:
+    get:
+      operationId: mechanics_retrieve
+      description: Endpoints for listing, searching, filtering, and updating field
+        mechanics.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this mechanic.
+        required: true
+      tags:
+      - Mechanics
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MechanicDetail'
+          description: ''
+  /api/v1/mechanics/{id}/status/:
+    patch:
+      operationId: mechanics_status_partial_update
+      description: Update mechanic operational availability status (AVAILABLE, BUSY,
+        ON_TRIP, OFFLINE)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this mechanic.
+        required: true
+      tags:
+      - Mechanics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMechanicStatusUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMechanicStatusUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMechanicStatusUpdate'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MechanicDetail'
+          description: ''
+  /api/v1/service-categories/:
+    get:
+      operationId: service_categories_list
+      description: List all active automotive service categories with embedded service
+        lists.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Services
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceCategory'
+          description: ''
+  /api/v1/services/:
+    get:
+      operationId: services_list
+      description: List all individual service catalog offerings with category metadata.
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: integer
+        description: Filter by category ID
+      - in: query
+        name: category_slug
+        schema:
+          type: string
+        description: Filter by category slug
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Search service name or description
+      tags:
+      - Services
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+          description: ''
+components:
+  schemas:
+    ActiveBookingCompact:
+      type: object
+      properties:
+        id:
+          type: integer
+        reference_code:
+          type: string
+        customer_name:
+          type: string
+        vehicle_info:
+          type: string
+        license_plate:
+          type: string
+        service_name:
+          type: string
+        status:
+          type: string
+        scheduled_at:
+          type: string
+          format: date-time
+      required:
+      - customer_name
+      - id
+      - license_plate
+      - reference_code
+      - scheduled_at
+      - service_name
+      - status
+      - vehicle_info
+    AnalyticsOverview:
+      type: object
+      properties:
+        total_bookings:
+          type: integer
+        today_bookings:
+          type: integer
+        completed_bookings:
+          type: integer
+        pending_bookings:
+          type: integer
+        assigned_bookings:
+          type: integer
+        on_the_way_bookings:
+          type: integer
+        in_progress_bookings:
+          type: integer
+        cancelled_bookings:
+          type: integer
+        total_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        today_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        avg_ticket_size:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_mechanics:
+          type: integer
+        active_mechanics:
+          type: integer
+        available_mechanics:
+          type: integer
+        busy_mechanics:
+          type: integer
+        new_customers_this_month:
+          type: integer
+      required:
+      - active_mechanics
+      - assigned_bookings
+      - available_mechanics
+      - avg_ticket_size
+      - busy_mechanics
+      - cancelled_bookings
+      - completed_bookings
+      - in_progress_bookings
+      - new_customers_this_month
+      - on_the_way_bookings
+      - pending_bookings
+      - today_bookings
+      - today_revenue
+      - total_bookings
+      - total_mechanics
+      - total_revenue
+    BookingCustomerCompact:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        phone:
+          type: string
+          maxLength: 30
+        city:
+          type: string
+          maxLength: 100
+      required:
+      - email
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - phone
+    BookingDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reference_code:
+          type: string
+          description: Human-readable booking reference e.g., IM-2024-8192
+          maxLength: 20
+        customer:
+          allOf:
+          - $ref: '#/components/schemas/BookingCustomerCompact'
+          readOnly: true
+        vehicle:
+          allOf:
+          - $ref: '#/components/schemas/BookingVehicleCompact'
+          readOnly: true
+        service:
+          allOf:
+          - $ref: '#/components/schemas/BookingServiceCompact'
+          readOnly: true
+        mechanic:
+          allOf:
+          - $ref: '#/components/schemas/BookingMechanicCompact'
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/BookingStatusEnum'
+        status_display:
+          type: string
+          readOnly: true
+        scheduled_at:
+          type: string
+          format: date-time
+          description: Scheduled service date and time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when job was marked completed
+        base_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Standard service catalog price in INR
+        additional_charges:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Extra parts/labor added during service in INR
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Total billable amount in INR
+        service_location:
+          type: string
+          description: Customer address or workshop location
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        customer_notes:
+          type: string
+          description: Special requests by customer
+        mechanic_notes:
+          type: string
+          description: Inspection diagnosis and notes
+        status_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingStatusHistory'
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - base_price
+      - created_at
+      - customer
+      - id
+      - mechanic
+      - reference_code
+      - scheduled_at
+      - service
+      - status_display
+      - status_history
+      - total_amount
+      - updated_at
+      - vehicle
+    BookingList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reference_code:
+          type: string
+          description: Human-readable booking reference e.g., IM-2024-8192
+          maxLength: 20
+        customer:
+          allOf:
+          - $ref: '#/components/schemas/BookingCustomerCompact'
+          readOnly: true
+        vehicle:
+          allOf:
+          - $ref: '#/components/schemas/BookingVehicleCompact'
+          readOnly: true
+        service:
+          allOf:
+          - $ref: '#/components/schemas/BookingServiceCompact'
+          readOnly: true
+        mechanic:
+          allOf:
+          - $ref: '#/components/schemas/BookingMechanicCompact'
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/BookingStatusEnum'
+        status_display:
+          type: string
+          readOnly: true
+        scheduled_at:
+          type: string
+          format: date-time
+          description: Scheduled service date and time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when job was marked completed
+        base_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Standard service catalog price in INR
+        additional_charges:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Extra parts/labor added during service in INR
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Total billable amount in INR
+        service_location:
+          type: string
+          description: Customer address or workshop location
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - base_price
+      - created_at
+      - customer
+      - id
+      - mechanic
+      - reference_code
+      - scheduled_at
+      - service
+      - status_display
+      - total_amount
+      - vehicle
+    BookingMechanicCompact:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        full_name:
+          type: string
+          readOnly: true
+        phone:
+          type: string
+          maxLength: 30
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          description: Customer satisfaction rating out of 5.00
+        status:
+          $ref: '#/components/schemas/MechanicStatusEnum'
+        avatar_url:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
+        specialization:
+          type: string
+          description: Primary technical specialty
+          maxLength: 120
+      required:
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - phone
+    BookingServiceCompact:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        category_name:
+          type: string
+          readOnly: true
+        category_slug:
+          type: string
+          readOnly: true
+        base_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Standard base price in INR (₹)
+        estimated_duration_minutes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Estimated turnaround duration in minutes
+      required:
+      - base_price
+      - category_name
+      - category_slug
+      - id
+      - name
+    BookingStatusEnum:
+      enum:
+      - PENDING
+      - ASSIGNED
+      - ON_THE_WAY
+      - IN_PROGRESS
+      - COMPLETED
+      - CANCELLED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `ASSIGNED` - Assigned
+        * `ON_THE_WAY` - Mechanic On The Way
+        * `IN_PROGRESS` - In Progress
+        * `COMPLETED` - Completed
+        * `CANCELLED` - Cancelled
+    BookingStatusHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        from_status:
+          type: string
+          nullable: true
+          maxLength: 30
+        to_status:
+          type: string
+          maxLength: 30
+        changed_by:
+          type: string
+          description: User, Role or System actor performing the state change
+          maxLength: 100
+        notes:
+          type: string
+          description: Optional remarks for transition
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - to_status
+    BookingVehicleCompact:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        make:
+          type: string
+          description: e.g., Maruti Suzuki, Hyundai, Tata
+          maxLength: 60
+        model:
+          type: string
+          description: e.g., Swift, Creta, Nexon
+          maxLength: 60
+        year:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Manufacturing year e.g., 2022
+        license_plate:
+          type: string
+          description: Registration format e.g. KA 01 MJ 5821
+          maxLength: 30
+        fuel_type:
+          $ref: '#/components/schemas/VehicleFuelTypeEnum'
+        mileage:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Odometer reading in km
+        display_name:
+          type: string
+          readOnly: true
+      required:
+      - display_name
+      - id
+      - license_plate
+      - make
+      - model
+      - year
+    BookingsOverTimeItem:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        total_bookings:
+          type: integer
+        completed:
+          type: integer
+        in_progress:
+          type: integer
+        pending:
+          type: integer
+        cancelled:
+          type: integer
+      required:
+      - cancelled
+      - completed
+      - date
+      - in_progress
+      - pending
+      - total_bookings
+    CategoryBreakdownItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+        booking_count:
+          type: integer
+        completed_booking_count:
+          type: integer
+        revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - booking_count
+      - completed_booking_count
+      - icon
+      - id
+      - name
+      - revenue
+      - slug
+    CustomerBookingSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        reference_code:
+          type: string
+        service_name:
+          type: string
+        vehicle_info:
+          type: string
+        status:
+          type: string
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        scheduled_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - reference_code
+      - scheduled_at
+      - service_name
+      - status
+      - total_amount
+      - vehicle_info
+    CustomerDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        phone:
+          type: string
+          maxLength: 30
+        address:
+          type: string
+          maxLength: 255
+        city:
+          type: string
+          maxLength: 100
+        postal_code:
+          type: string
+          maxLength: 20
+        vehicle_count:
+          type: integer
+          readOnly: true
+          default: 0
+        booking_count:
+          type: integer
+          readOnly: true
+          default: 0
+        total_spend:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          default: '0.00'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        vehicles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+          readOnly: true
+        recent_bookings:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerBookingSummary'
+          readOnly: true
+      required:
+      - booking_count
+      - created_at
+      - email
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - phone
+      - recent_bookings
+      - total_spend
+      - vehicle_count
+      - vehicles
+    CustomerList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        phone:
+          type: string
+          maxLength: 30
+        address:
+          type: string
+          maxLength: 255
+        city:
+          type: string
+          maxLength: 100
+        postal_code:
+          type: string
+          maxLength: 20
+        vehicle_count:
+          type: integer
+          readOnly: true
+          default: 0
+        booking_count:
+          type: integer
+          readOnly: true
+          default: 0
+        total_spend:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          default: '0.00'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - booking_count
+      - created_at
+      - email
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - phone
+      - total_spend
+      - vehicle_count
+    MechanicDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        phone:
+          type: string
+          maxLength: 30
+        status:
+          $ref: '#/components/schemas/MechanicStatusEnum'
+        status_display:
+          type: string
+          readOnly: true
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          description: Customer satisfaction rating out of 5.00
+        total_jobs_completed:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Total verified completed service bookings
+        specialization:
+          type: string
+          description: Primary technical specialty
+          maxLength: 120
+        avatar_url:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
+        experience_years:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        current_latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        current_longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        active_booking:
+          allOf:
+          - $ref: '#/components/schemas/ActiveBookingCompact'
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        booking_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActiveBookingCompact'
+          readOnly: true
+      required:
+      - active_booking
+      - booking_history
+      - created_at
+      - email
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - phone
+      - status_display
+    MechanicList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        phone:
+          type: string
+          maxLength: 30
+        status:
+          $ref: '#/components/schemas/MechanicStatusEnum'
+        status_display:
+          type: string
+          readOnly: true
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          description: Customer satisfaction rating out of 5.00
+        total_jobs_completed:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Total verified completed service bookings
+        specialization:
+          type: string
+          description: Primary technical specialty
+          maxLength: 120
+        avatar_url:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
+        experience_years:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        current_latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        current_longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        active_booking:
+          allOf:
+          - $ref: '#/components/schemas/ActiveBookingCompact'
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - active_booking
+      - created_at
+      - email
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - phone
+      - status_display
+    MechanicStatusEnum:
+      enum:
+      - AVAILABLE
+      - BUSY
+      - ON_TRIP
+      - OFFLINE
+      type: string
+      description: |-
+        * `AVAILABLE` - Available
+        * `BUSY` - Busy / In Service
+        * `ON_TRIP` - On The Way
+        * `OFFLINE` - Offline
+    PaginatedBookingListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingList'
+    PaginatedCustomerListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerList'
+    PaginatedMechanicListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MechanicList'
+    PatchedBookingAssignMechanic:
+      type: object
+      properties:
+        mechanic_id:
+          type: integer
+        notes:
+          type: string
+          default: ''
+        changed_by:
+          type: string
+          default: Operations Dispatch
+    PatchedBookingStatusUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/BookingStatusEnum'
+        notes:
+          type: string
+          default: ''
+        changed_by:
+          type: string
+          default: Operations Desk
+    PatchedMechanicStatusUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/MechanicStatusEnum'
+    RevenueOverTimeItem:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        completed_jobs:
+          type: integer
+        avg_ticket:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - avg_ticket
+      - completed_jobs
+      - date
+      - revenue
+    Service:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        category:
+          type: integer
+        category_name:
+          type: string
+          readOnly: true
+        category_slug:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+        base_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Standard base price in INR (₹)
+        estimated_duration_minutes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Estimated turnaround duration in minutes
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - base_price
+      - category
+      - category_name
+      - category_slug
+      - created_at
+      - id
+      - name
+    ServiceBreakdown:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryBreakdownItem'
+        top_services:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopServiceItem'
+      required:
+      - categories
+      - top_services
+    ServiceCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        icon:
+          type: string
+          description: Lucide icon identifier
+          maxLength: 60
+        description:
+          type: string
+        is_active:
+          type: boolean
+        services_count:
+          type: integer
+          readOnly: true
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - services
+      - services_count
+      - slug
+    StatusDistributionItem:
+      type: object
+      properties:
+        status:
+          type: string
+        status_display:
+          type: string
+        count:
+          type: integer
+        percentage:
+          type: number
+          format: double
+      required:
+      - count
+      - percentage
+      - status
+      - status_display
+    TopServiceItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category__name:
+          type: string
+        base_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        booking_count:
+          type: integer
+        revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - base_price
+      - booking_count
+      - category__name
+      - id
+      - name
+      - revenue
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        make:
+          type: string
+          description: e.g., Maruti Suzuki, Hyundai, Tata
+          maxLength: 60
+        model:
+          type: string
+          description: e.g., Swift, Creta, Nexon
+          maxLength: 60
+        year:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Manufacturing year e.g., 2022
+        license_plate:
+          type: string
+          description: Registration format e.g. KA 01 MJ 5821
+          maxLength: 30
+        vin:
+          type: string
+          nullable: true
+          maxLength: 25
+        fuel_type:
+          $ref: '#/components/schemas/VehicleFuelTypeEnum'
+        fuel_type_display:
+          type: string
+          readOnly: true
+        mileage:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Odometer reading in km
+        display_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - display_name
+      - fuel_type_display
+      - id
+      - license_plate
+      - make
+      - model
+      - year
+    VehicleFuelTypeEnum:
+      enum:
+      - PETROL
+      - DIESEL
+      - ELECTRIC
+      - CNG
+      - HYBRID
+      type: string
+      description: |-
+        * `PETROL` - Petrol
+        * `DIESEL` - Diesel
+        * `ELECTRIC` - Electric
+        * `CNG` - CNG
+        * `HYBRID` - Hybrid
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
